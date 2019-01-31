@@ -149,8 +149,7 @@ int** ViolateScore(int** pop, int pop_size){
                         } else {
                                 break;
                         }
-                }
-		printf("Gene Number %d score: %d\n", i+1, score);
+                }	
                 score_list[i][0] = score;
         }
         pop = Sort(pop, pop_size, score_list);
