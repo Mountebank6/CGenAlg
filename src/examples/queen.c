@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <limits.h>
+#include <time.h>
 
 #define True 1
 #define False 0
@@ -13,10 +14,24 @@ int CHESSBOARD_SIZE = 8;
  * and False otherwise
  */
 int Threaten(int x_1, int y_1, int x_2, int y_2){
-        if(x_1 == x_2 || y_1 == y_2){
+        //Detect queens being in the same spot
+        if (x_1 == x_2 && y_1 == y_2){
+                return -1; 
+        }
+        //If on the same horiz or vert axis
+        if (x_1 == x_2 || y_1 == y_2){
                 return True;
         }
-        //Figure out how to look for diagonals                
+        //Check if abs val of differences are equal (diagonal check)
+        x_1 -= x_2;
+        y_1 -= y_2;
+        x_1 &= x_1;
+        y_1 &= y_1;
+        if (x_1 == y_1){
+                return True;
+        } else {
+                return False;
+        }            
 }
 
 
@@ -100,12 +115,23 @@ void ViolateScore(int** pop, int pop_size){
         for (int i=0; i<pop_size; i++){
                 score = 0;
                 for (int j=0; j<CHESSBOARD_SIZE; j++){
+                        //Create a flag to catch impossible boards
+                        int threaten_flag; 
                         for (int k=j+1; k<CHESSBOARD_SIZE; k++){
-                                if (Threaten(pop[i][j*2], pop[i][j*2+1],
-                                            pop[i][k*2], pop[i][k*2+1])){
-                                 
+                                threaten_flag = Threaten(pop[i][j*2], pop[i][j*2+1],
+                                            pop[i][k*2], pop[i][k*2+1]); 
+                                if (threaten_flag == -1){
+                                       score = INT_MAX;
+                                       break;
+                                } else if (threaten_flag){
                                        score += 1;
                                 }
+                        }
+                        //Make the default true value the likely case
+                        if (threaten_flag != -1){
+                                continue;
+                        } else {
+                                break;
                         }
                 }
                 score_list[i][0] = score;
@@ -117,37 +143,43 @@ void ViolateScore(int** pop, int pop_size){
 }     
 
 
+void rand_gene(int* gene, int length){
+        for (int i=0; i<length; i++){
+                gene[i] = rand() % 7;
+        }
+}
+
+
+void print_pop(int** population, int pop_size, int gene_size){
+        for (int i=0; i<pop_size; i++){
+                printf("Gene Number %d: ",i+1);
+                int every_other = 0;
+                for (int j=0; j<gene_size; j++){
+                        if (every_other){
+                                printf("%d ", population[i][j]);
+                        } else {
+                                printf("%d,", population[i][j]);
+                        }
+                        every_other ^= 1;
+                }
+                printf("\n");
+        }
+}
+
+
 int main(){
         int** test_pop = (int**) malloc(sizeof(int*)*4);
         for (int i=0; i<4; i++){
-                int* sub = (int*) malloc(sizeof(int*));
+                int* sub = (int*) malloc(sizeof(int*)*16);
                 sub[0] = i;
                 test_pop[i] = sub;
         }
-        
-        int** sco = (int**) malloc(sizeof(int*)*4);
-        for (int i=0; i<4; i++){
-                int* sub = (int*) malloc(sizeof(int*));
-                sub[0] = 0;
-                sub[1] = i;
-                sco[i] = sub;
+        srand(time(NULL));        
+        for(int i=0; i<4; i++){
+                rand_gene(test_pop[i], 16);
         }
-        sco[0][0] = 3;
-        sco[1][0] = 1;
-        sco[2][0] = 2;
-        sco[3][0] = 4;
-
-        printf("Values of test_pop at initialization\n");
-        for (int i=0; i<3; i++){
-                printf("%d, ", test_pop[i][0]);
-        }
-        printf("%d \n", test_pop[3][0]);
-        test_pop = Sort(test_pop, 4, sco);
-        
-        printf("Values of test_pop after ordering\n");
-        for (int i=0; i<3; i++){
-                printf("%d, ", test_pop[i][0]);
-        }
-        printf("%d \n", test_pop[3][0]);
-        return 0;
+        print_pop(test_pop, 4, 16);
+        printf("######################\n");
+        ViolateScore(test_pop, 4);
+        print_pop(test_pop, 4, 16);
 }
