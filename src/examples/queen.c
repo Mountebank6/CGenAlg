@@ -23,10 +23,8 @@ int Threaten(int x_1, int y_1, int x_2, int y_2){
                 return True;
         }
         //Check if abs val of differences are equal (diagonal check)
-        x_1 -= x_2;
-        y_1 -= y_2;
-        x_1 &= x_1;
-        y_1 &= y_1;
+        x_1 = abs(x_1 - x_2);
+        y_1 = abs(y_1 - y_2);
         if (x_1 == y_1){
                 return True;
         } else {
@@ -40,6 +38,26 @@ int Min(int A, int B){
                 return A;
         } else {
                 return B;
+        }
+}
+
+
+void print_pop(int** population, int pop_size){
+	int gene_size = 2*CHESSBOARD_SIZE;
+
+        for (int i=0; i<pop_size; i++){
+                printf("Gene Number %d: ",i+1);
+                int every_other = 0;
+                
+		for (int j=0; j<gene_size; j++){
+                        if (every_other){
+                                printf("%d ", population[i][j]);
+                        } else {
+                                printf("%d,", population[i][j]);
+                        }
+                        every_other ^= 1;
+                }
+                printf("\n");
         }
 }
 
@@ -90,10 +108,8 @@ int** Sort(int** pop, int pop_size, int** scores){
                 temp[i] = pop[k];
                 free(remove);
         }
-        
-        pop = temp;
-        
-        return pop;
+             
+        return temp;
 }
 
 
@@ -102,7 +118,7 @@ int** Sort(int** pop, int pop_size, int** scores){
  * Take in a population of chessboards and sort them based on the sum 
  * of queens threatened by each queen
  */
-void ViolateScore(int** pop, int pop_size){
+int** ViolateScore(int** pop, int pop_size){
         int** score_list = (int**) malloc(sizeof(int*)*pop_size);
         int score;
         for (int i=0; i<pop_size; i++){
@@ -134,35 +150,18 @@ void ViolateScore(int** pop, int pop_size){
                                 break;
                         }
                 }
+		printf("Gene Number %d score: %d\n", i+1, score);
                 score_list[i][0] = score;
         }
-        
         pop = Sort(pop, pop_size, score_list);
         free(score_list);
-        return;
+        return pop;
 }     
 
 
 void rand_gene(int* gene, int length){
         for (int i=0; i<length; i++){
                 gene[i] = rand() % 7;
-        }
-}
-
-
-void print_pop(int** population, int pop_size, int gene_size){
-        for (int i=0; i<pop_size; i++){
-                printf("Gene Number %d: ",i+1);
-                int every_other = 0;
-                for (int j=0; j<gene_size; j++){
-                        if (every_other){
-                                printf("%d ", population[i][j]);
-                        } else {
-                                printf("%d,", population[i][j]);
-                        }
-                        every_other ^= 1;
-                }
-                printf("\n");
         }
 }
 
@@ -178,8 +177,8 @@ int main(){
         for(int i=0; i<4; i++){
                 rand_gene(test_pop[i], 16);
         }
-        print_pop(test_pop, 4, 16);
+        print_pop(test_pop, 4);
         printf("######################\n");
-        ViolateScore(test_pop, 4);
-        print_pop(test_pop, 4, 16);
+        test_pop = ViolateScore(test_pop, 4);
+        print_pop(test_pop, 4);
 }
